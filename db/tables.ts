@@ -48,6 +48,9 @@ export const StudyTasks = defineTable({
       enum: ["pending", "in_progress", "done"],
       default: "pending",
     }),
+    completedAt: column.date({ optional: true }),
+    dueNotifiedAt: column.date({ optional: true }),
+    overdueNotifiedAt: column.date({ optional: true }),
 
     createdAt: column.date({ default: NOW }),
     updatedAt: column.date({ default: NOW }),
@@ -75,6 +78,7 @@ export const StudySessions = defineTable({
     durationMinutes: column.number({ default: 0 }),
 
     notes: column.text({ optional: true }),
+    createdAt: column.date({ default: NOW }),
   },
 });
 

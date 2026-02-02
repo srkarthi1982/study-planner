@@ -1,0 +1,144 @@
+---
+import {
+  AvBreadcrumb,
+  AvButton,
+  AvCard,
+  AvContainer,
+  AvEmptyState,
+  AvInput,
+  AvTextarea,
+} from "@ansiversa/components";
+import AppShell from "../../layouts/AppShell.astro";
+import { FREE_LIMITS } from "../../lib/freeLimits";
+
+const title = "Study Plans – Ansiversa";
+const description = "Create and manage your study plans.";
+const isPaid = Boolean(Astro.locals.user?.isPaid);
+const maxPlans = FREE_LIMITS.maxPlans;
+---
+
+<AppShell title={title} description={description}>
+  <section class="av-faq-public__crumb">
+    <AvContainer>
+      <AvBreadcrumb items={[{ label: "Home", href: "/" }, { label: "Plans" }]} />
+    </AvContainer>
+  </section>
+
+  <section
+    class="av-section"
+    x-data={`{ maxPlans: ${maxPlans} }`}
+    x-init={`$store.studyPlanner.setBillingStatus(${isPaid}); $store.studyPlanner.loadPlans();`}
+  >
+    <AvContainer>
+      <div class="av-auth-stack-lg">
+        <AvCard className="av-auth-stack-md">
+          <div class="av-auth-stack-sm">
+            <div>
+              <p class="av-kicker">Study Planner</p>
+              <h1 class="av-section-title">Your plans</h1>
+              <p class="av-text-soft">Group tasks by exam, course, or weekly focus.</p>
+            </div>
+
+            <form class="av-auth-stack-sm" @submit.prevent="$store.studyPlanner.createPlan()">
+              <div class="av-auth-stack-xs">
+                <AvInput
+                  label="Plan title"
+                  name="plan-title"
+                  placeholder="e.g., Biology Semester 1"
+                  x-model="$store.studyPlanner.newPlan.title"
+                  required
+                />
+                <AvTextarea
+                  label="Description"
+                  name="plan-description"
+                  rows={2}
+                  placeholder="Short notes about this plan"
+                  x-model="$store.studyPlanner.newPlan.description"
+                />
+                <div class="av-grid-cols-2">
+                  <AvInput
+                    label="Subject"
+                    name="plan-subject"
+                    placeholder="e.g., Physics"
+                    x-model="$store.studyPlanner.newPlan.subject"
+                  />
+                  <AvInput
+                    label="Tags"
+                    name="plan-tags"
+                    placeholder="e.g., midterm, revision"
+                    x-model="$store.studyPlanner.newPlan.tags"
+                  />
+                </div>
+              </div>
+              <div class="av-row-wrap">
+                <AvButton type="submit" :disabled="$store.studyPlanner.loading">Create plan</AvButton>
+              </div>
+              <p class="av-text-soft" x-show="$store.studyPlanner.error" x-text="$store.studyPlanner.error"></p>
+              <p class="av-text-soft" x-show="$store.studyPlanner.success" x-text="$store.studyPlanner.success"></p>
+            </form>
+
+            <div
+              class="av-card av-card-soft av-auth-stack-xs"
+              x-show="!$store.studyPlanner.isPaid && $store.studyPlanner.plans.length >= maxPlans"
+            >
+              <p class="av-text-strong">Free plans limit reached.</p>
+              <p class="av-text-soft">Upgrade to Pro to create more than {maxPlans} plans.</p>
+              <AvButton href="/pricing" variant="ghost">View pricing</AvButton>
+            </div>
+          </div>
+        </AvCard>
+
+        <AvCard variant="soft" className="av-auth-stack-md">
+          <div class="av-auth-stack-sm">
+            <div class="av-row-between">
+              <div>
+                <h2 class="av-card-heading">Pro exports</h2>
+                <p class="av-text-soft">Export your plans and tasks as a PDF.</p>
+              </div>
+              <span class="av-badge av-badge-primary">Pro</span>
+            </div>
+            <div class="av-row-wrap">
+              <AvButton type="button" disabled={!isPaid}>Export plans</AvButton>
+              <AvButton type="button" variant="ghost" disabled={!isPaid}>Schedule export</AvButton>
+            </div>
+            {!isPaid ? (
+              <div class="av-card av-card-soft av-auth-stack-xs">
+                <p class="av-text-strong">Exports are available in Pro.</p>
+                <AvButton href="/pricing" variant="ghost">View pricing</AvButton>
+              </div>
+            ) : null}
+          </div>
+        </AvCard>
+
+        <AvCard variant="soft" className="av-auth-stack-md">
+          <div class="av-row-between">
+            <h2 class="av-card-heading">Plans</h2>
+            <p class="av-text-soft" x-text="`${$store.studyPlanner.plans.length} total`"></p>
+          </div>
+
+          <template x-if="$store.studyPlanner.plans.length === 0 && !$store.studyPlanner.loading">
+            <AvEmptyState title="No plans yet" description="Create your first study plan." />
+          </template>
+
+          <div class="av-auth-stack-sm" x-show="$store.studyPlanner.plans.length > 0">
+            <template x-for="plan in $store.studyPlanner.plans" :key="plan.id">
+              <div class="av-card av-card-soft av-auth-stack-xs">
+                <div class="av-row-between">
+                  <div>
+                    <h3 class="av-card-heading" x-text="plan.title"></h3>
+                    <p class="av-text-soft" x-text="plan.description || 'No description'"></p>
+                  </div>
+                  <div class="av-row-wrap">
+                    <p class="av-text-soft" x-text="`${plan.tasksCount ?? 0} tasks`"></p>
+                    <a class="av-btn-primary av-btn-sm" x-bind:href="`/plans/${plan.id}`">Open</a>
+                  </div>
+                </div>
+                <p class="av-text-soft" x-text="plan.subject ? `Subject: ${plan.subject}` : ''"></p>
+              </div>
+            </template>
+          </div>
+        </AvCard>
+      </div>
+    </AvContainer>
+  </section>
+</AppShell>

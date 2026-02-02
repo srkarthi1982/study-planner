@@ -1,0 +1,142 @@
+---
+import {
+  AvBreadcrumb,
+  AvButton,
+  AvCard,
+  AvContainer,
+  AvEmptyState,
+  AvInput,
+  AvSelect,
+  AvTextarea,
+} from "@ansiversa/components";
+import { StudyPlans, db, eq } from "astro:db";
+import AppShell from "../../layouts/AppShell.astro";
+import { FREE_LIMITS } from "../../lib/freeLimits";
+
+const title = "Study Logs – Ansiversa";
+const description = "Track study sessions and progress.";
+const isPaid = Boolean(Astro.locals.user?.isPaid);
+const maxLogs = FREE_LIMITS.maxLogs;
+const userId = Astro.locals.user?.id ?? "";
+const plans = userId
+  ? await db.select().from(StudyPlans).where(eq(StudyPlans.ownerId, userId))
+  : [];
+---
+
+<AppShell title={title} description={description}>
+  <section class="av-faq-public__crumb">
+    <AvContainer>
+      <AvBreadcrumb items={[{ label: "Home", href: "/" }, { label: "Logs" }]} />
+    </AvContainer>
+  </section>
+
+  <section
+    class="av-section"
+    x-data={`{ maxLogs: ${maxLogs} }`}
+    x-init={`$store.studyPlanner.setBillingStatus(${isPaid}); $store.studyPlanner.loadLogs();`}
+  >
+    <AvContainer>
+      <div class="av-auth-stack-lg">
+        <AvCard className="av-auth-stack-md">
+          <div class="av-auth-stack-sm">
+            <div>
+              <p class="av-kicker">Study Planner</p>
+              <h1 class="av-section-title">Study logs</h1>
+              <p class="av-text-soft">Capture what you worked on and for how long.</p>
+            </div>
+
+            <form class="av-auth-stack-sm" @submit.prevent="$store.studyPlanner.createLog()">
+              <div class="av-auth-stack-xs">
+                <AvSelect
+                  label="Plan"
+                  name="log-plan"
+                  x-model="$store.studyPlanner.newLog.planId"
+                  required
+                >
+                  <option value="">Select a plan</option>
+                  {plans.map((plan) => (
+                    <option value={plan.id}>{plan.title}</option>
+                  ))}
+                </AvSelect>
+
+                <AvInput
+                  label="Task ID (optional)"
+                  name="log-task"
+                  placeholder="Paste task id if needed"
+                  x-model="$store.studyPlanner.newLog.taskId"
+                />
+
+                <div class="av-grid-cols-2">
+                  <AvInput
+                    label="Date"
+                    name="log-date"
+                    type="date"
+                    x-model="$store.studyPlanner.newLog.occurredAt"
+                  />
+                  <AvInput
+                    label="Minutes"
+                    name="log-minutes"
+                    type="number"
+                    min="0"
+                    x-model="$store.studyPlanner.newLog.minutes"
+                  />
+                </div>
+
+                <AvTextarea
+                  label="Notes"
+                  name="log-notes"
+                  rows={2}
+                  placeholder="What did you cover?"
+                  x-model="$store.studyPlanner.newLog.notes"
+                />
+              </div>
+              <div class="av-row-wrap">
+                <AvButton type="submit" :disabled="$store.studyPlanner.loading">Save log</AvButton>
+              </div>
+              <p class="av-text-soft" x-show="$store.studyPlanner.error" x-text="$store.studyPlanner.error"></p>
+              <p class="av-text-soft" x-show="$store.studyPlanner.success" x-text="$store.studyPlanner.success"></p>
+            </form>
+
+            <div
+              class="av-card av-card-soft av-auth-stack-xs"
+              x-show="!$store.studyPlanner.isPaid && $store.studyPlanner.logs.length >= maxLogs"
+            >
+              <p class="av-text-strong">Free logs limit reached.</p>
+              <p class="av-text-soft">Upgrade to Pro to log more than {maxLogs} sessions.</p>
+              <AvButton href="/pricing" variant="ghost">View pricing</AvButton>
+            </div>
+          </div>
+        </AvCard>
+
+        <AvCard variant="soft" className="av-auth-stack-md">
+          <div class="av-row-between">
+            <h2 class="av-card-heading">Recent logs</h2>
+            <p class="av-text-soft" x-text="`${$store.studyPlanner.logs.length} total`"></p>
+          </div>
+
+          <template x-if="$store.studyPlanner.logs.length === 0 && !$store.studyPlanner.loading">
+            <AvEmptyState title="No logs yet" description="Add your first study log above." />
+          </template>
+
+          <div class="av-auth-stack-sm" x-show="$store.studyPlanner.logs.length > 0">
+            <template x-for="log in $store.studyPlanner.logs" :key="log.id">
+              <div class="av-card av-card-soft av-auth-stack-xs">
+                <div class="av-row-between">
+                  <div>
+                    <h3 class="av-card-heading" x-text="log.planTitle || 'Plan'" ></h3>
+                    <p class="av-text-soft" x-text="log.taskTitle ? `Task: ${log.taskTitle}` : 'General session'"></p>
+                  </div>
+                  <div class="av-row-wrap">
+                    <p class="av-text-soft" x-text="log.durationMinutes ? `${log.durationMinutes} min` : ''"></p>
+                  </div>
+                </div>
+                <p class="av-text-soft" x-text="log.startedAt ? new Date(log.startedAt).toLocaleString() : ''"></p>
+                <p class="av-text-soft" x-text="log.notes || ''"></p>
+              </div>
+            </template>
+          </div>
+        </AvCard>
+      </div>
+    </AvContainer>
+  </section>
+</AppShell>

@@ -1,0 +1,155 @@
+---
+import {
+  AvBreadcrumb,
+  AvButton,
+  AvCard,
+  AvContainer,
+  AvEmptyState,
+  AvInput,
+  AvTextarea,
+} from "@ansiversa/components";
+import AppShell from "../../layouts/AppShell.astro";
+import { FREE_LIMITS } from "../../lib/freeLimits";
+
+const planId = Number.parseInt(Astro.params.id ?? "", 10);
+if (!Number.isFinite(planId)) {
+  throw new Error("Invalid plan id.");
+}
+
+const title = "Study Plan – Ansiversa";
+const description = "Track tasks inside your study plan.";
+const isPaid = Boolean(Astro.locals.user?.isPaid);
+const maxTasks = FREE_LIMITS.maxTasks;
+---
+
+<AppShell title={title} description={description}>
+  <section class="av-faq-public__crumb">
+    <AvContainer>
+      <AvBreadcrumb
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Plans", href: "/plans" },
+          { label: "Plan details" },
+        ]}
+      />
+    </AvContainer>
+  </section>
+
+  <section
+    class="av-section"
+    x-data={`{ maxTasks: ${maxTasks} }`}
+    x-init={`$store.studyPlanner.setBillingStatus(${isPaid}); $store.studyPlanner.loadPlanDetail(${planId});`}
+  >
+    <AvContainer>
+      <div class="av-auth-stack-lg">
+        <AvCard className="av-auth-stack-md">
+          <div class="av-auth-stack-sm">
+            <div>
+              <p class="av-kicker">Study Planner</p>
+              <h1 class="av-section-title" x-text="$store.studyPlanner.currentPlan?.title || 'Plan'"></h1>
+              <p class="av-text-soft" x-text="$store.studyPlanner.currentPlan?.description || 'No description'"></p>
+            </div>
+          </div>
+        </AvCard>
+
+        <AvCard className="av-auth-stack-md">
+          <div class="av-auth-stack-sm">
+            <div>
+              <h2 class="av-card-heading">Add a task</h2>
+              <p class="av-text-soft">Break this plan into focused tasks.</p>
+            </div>
+
+            <form class="av-auth-stack-sm" @submit.prevent="$store.studyPlanner.createTask(${planId})">
+              <div class="av-auth-stack-xs">
+                <AvInput
+                  label="Task title"
+                  name="task-title"
+                  placeholder="e.g., Review chapter 2"
+                  x-model="$store.studyPlanner.newTask.title"
+                  required
+                />
+                <AvTextarea
+                  label="Description"
+                  name="task-description"
+                  rows={2}
+                  placeholder="Optional notes"
+                  x-model="$store.studyPlanner.newTask.description"
+                />
+                <div class="av-grid-cols-2">
+                  <AvInput
+                    label="Due date"
+                    name="task-due-date"
+                    type="date"
+                    x-model="$store.studyPlanner.newTask.dueDate"
+                  />
+                  <AvInput
+                    label="Estimated minutes"
+                    name="task-minutes"
+                    type="number"
+                    min="0"
+                    x-model="$store.studyPlanner.newTask.estimatedMinutes"
+                  />
+                </div>
+              </div>
+              <div class="av-row-wrap">
+                <AvButton type="submit" :disabled="$store.studyPlanner.loading">Add task</AvButton>
+              </div>
+              <p class="av-text-soft" x-show="$store.studyPlanner.error" x-text="$store.studyPlanner.error"></p>
+              <p class="av-text-soft" x-show="$store.studyPlanner.success" x-text="$store.studyPlanner.success"></p>
+            </form>
+
+            <div
+              class="av-card av-card-soft av-auth-stack-xs"
+              x-show="!$store.studyPlanner.isPaid && $store.studyPlanner.tasks.length >= maxTasks"
+            >
+              <p class="av-text-strong">Free tasks limit reached.</p>
+              <p class="av-text-soft">Upgrade to Pro to create more than {maxTasks} tasks.</p>
+              <AvButton href="/pricing" variant="ghost">View pricing</AvButton>
+            </div>
+          </div>
+        </AvCard>
+
+        <AvCard variant="soft" className="av-auth-stack-md">
+          <div class="av-row-between">
+            <h2 class="av-card-heading">Tasks</h2>
+            <p class="av-text-soft" x-text="`${$store.studyPlanner.tasks.length} total`"></p>
+          </div>
+
+          <template x-if="$store.studyPlanner.tasks.length === 0 && !$store.studyPlanner.loading">
+            <AvEmptyState title="No tasks yet" description="Add your first task above." />
+          </template>
+
+          <div class="av-auth-stack-sm" x-show="$store.studyPlanner.tasks.length > 0">
+            <template x-for="task in $store.studyPlanner.tasks" :key="task.id">
+              <div class="av-card av-card-soft av-auth-stack-xs">
+                <div class="av-row-between">
+                  <div>
+                    <h3 class="av-card-heading" x-text="task.title"></h3>
+                    <p class="av-text-soft" x-text="task.description || 'No notes'"></p>
+                  </div>
+                  <div class="av-row-wrap">
+                    <button
+                      class="av-btn-primary av-btn-sm"
+                      type="button"
+                      @click="$store.studyPlanner.toggleTaskCompletion(task, ${planId})"
+                      x-text="task.status === 'done' ? 'Reopen' : 'Complete'"
+                    ></button>
+                    <button
+                      class="av-btn-ghost av-btn-sm"
+                      type="button"
+                      @click="$store.studyPlanner.deleteTask(task, ${planId})"
+                    >Delete</button>
+                  </div>
+                </div>
+                <div class="av-row-between">
+                  <p class="av-text-soft" x-text="task.dueDate ? `Due ${new Date(task.dueDate).toLocaleDateString()}` : 'No due date'"></p>
+                  <p class="av-text-soft" x-text="task.estimatedMinutes ? `${task.estimatedMinutes} min` : ''"></p>
+                </div>
+              </div>
+            </template>
+          </div>
+        </AvCard>
+      </div>
+    </AvContainer>
+  </section>
+</AppShell>

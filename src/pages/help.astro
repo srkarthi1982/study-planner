@@ -1,0 +1,66 @@
+---
+import { AvBreadcrumb, AvButton, AvCard, AvContainer } from "@ansiversa/components";
+import AppShell from "../layouts/AppShell.astro";
+
+const title = "Help – Study Planner";
+const description = "Learn how to plan, track, and log study sessions.";
+---
+
+<AppShell title={title} description={description}>
+  <section class="av-faq-public__crumb">
+    <AvContainer>
+      <AvBreadcrumb items={[{ label: "Home", href: "/" }, { label: "Help" }]} />
+    </AvContainer>
+  </section>
+
+  <section class="av-section">
+    <AvContainer>
+      <div class="av-auth-stack-lg">
+        <AvCard className="av-auth-stack-md">
+          <div>
+            <p class="av-kicker">Study Planner</p>
+            <h1 class="av-section-title">Help</h1>
+            <p class="av-text-soft">
+              Use Study Planner to structure your study plans, track tasks, and log sessions.
+            </p>
+          </div>
+          <div class="av-row-wrap">
+            <AvButton href="/plans">Go to plans</AvButton>
+            <AvButton href="/today" variant="ghost">View today</AvButton>
+          </div>
+        </AvCard>
+
+        <AvCard variant="soft" className="av-auth-stack-md">
+          <div class="av-auth-stack-sm">
+            <h2 class="av-card-heading">How to start</h2>
+            <div class="av-auth-stack-xs">
+              <p class="av-text-soft">• Create a plan for your course or exam.</p>
+              <p class="av-text-soft">• Add tasks with due dates and time estimates.</p>
+              <p class="av-text-soft">• Log study sessions to track progress.</p>
+            </div>
+          </div>
+        </AvCard>
+
+        <AvCard variant="soft" className="av-auth-stack-md">
+          <div class="av-auth-stack-sm">
+            <h2 class="av-card-heading">Notifications</h2>
+            <div class="av-auth-stack-xs">
+              <p class="av-text-soft">• Due tasks trigger reminders in your parent dashboard.</p>
+              <p class="av-text-soft">• Overdue tasks show up until you complete them.</p>
+            </div>
+          </div>
+        </AvCard>
+
+        <AvCard variant="soft" className="av-auth-stack-md">
+          <div class="av-auth-stack-sm">
+            <h2 class="av-card-heading">Free vs Pro</h2>
+            <div class="av-auth-stack-xs">
+              <p class="av-text-soft">• Free: limited plans, tasks, and logs.</p>
+              <p class="av-text-soft">• Pro: unlock higher limits with server enforcement.</p>
+            </div>
+          </div>
+        </AvCard>
+      </div>
+    </AvContainer>
+  </section>
+</AppShell>

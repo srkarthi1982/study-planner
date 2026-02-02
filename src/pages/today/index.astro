@@ -1,0 +1,74 @@
+---
+import { AvBreadcrumb, AvCard, AvContainer, AvEmptyState } from "@ansiversa/components";
+import AppShell from "../../layouts/AppShell.astro";
+
+const title = "Today – Study Planner";
+const description = "Focus on what is due today.";
+---
+
+<AppShell title={title} description={description}>
+  <section class="av-faq-public__crumb">
+    <AvContainer>
+      <AvBreadcrumb items={[{ label: "Home", href: "/" }, { label: "Today" }]} />
+    </AvContainer>
+  </section>
+
+  <section class="av-section" x-data x-init="$store.studyPlanner.loadToday()">
+    <AvContainer>
+      <div class="av-auth-stack-lg">
+        <AvCard className="av-auth-stack-md">
+          <div>
+            <p class="av-kicker">Study Planner</p>
+            <h1 class="av-section-title">Today</h1>
+            <p class="av-text-soft">Review what is due and what needs attention.</p>
+          </div>
+        </AvCard>
+
+        <AvCard variant="soft" className="av-auth-stack-md">
+          <h2 class="av-card-heading">Due today</h2>
+          <template x-if="$store.studyPlanner.today.dueToday.length === 0 && !$store.studyPlanner.loading">
+            <AvEmptyState title="Nothing due today" description="You are on track." />
+          </template>
+          <div class="av-auth-stack-sm" x-show="$store.studyPlanner.today.dueToday.length > 0">
+            <template x-for="task in $store.studyPlanner.today.dueToday" :key="task.id">
+              <div class="av-card av-card-soft av-auth-stack-xs">
+                <h3 class="av-card-heading" x-text="task.title"></h3>
+                <p class="av-text-soft" x-text="task.description || 'No notes'"></p>
+              </div>
+            </template>
+          </div>
+        </AvCard>
+
+        <AvCard variant="soft" className="av-auth-stack-md">
+          <h2 class="av-card-heading">Overdue</h2>
+          <template x-if="$store.studyPlanner.today.overdue.length === 0 && !$store.studyPlanner.loading">
+            <AvEmptyState title="No overdue tasks" description="Keep going." />
+          </template>
+          <div class="av-auth-stack-sm" x-show="$store.studyPlanner.today.overdue.length > 0">
+            <template x-for="task in $store.studyPlanner.today.overdue" :key="task.id">
+              <div class="av-card av-card-soft av-auth-stack-xs">
+                <h3 class="av-card-heading" x-text="task.title"></h3>
+                <p class="av-text-soft" x-text="task.description || 'No notes'"></p>
+              </div>
+            </template>
+          </div>
+        </AvCard>
+
+        <AvCard variant="soft" className="av-auth-stack-md">
+          <h2 class="av-card-heading">Upcoming</h2>
+          <template x-if="$store.studyPlanner.today.upcoming.length === 0 && !$store.studyPlanner.loading">
+            <AvEmptyState title="No upcoming tasks" description="Add tasks with due dates to plan ahead." />
+          </template>
+          <div class="av-auth-stack-sm" x-show="$store.studyPlanner.today.upcoming.length > 0">
+            <template x-for="task in $store.studyPlanner.today.upcoming" :key="task.id">
+              <div class="av-card av-card-soft av-auth-stack-xs">
+                <h3 class="av-card-heading" x-text="task.title"></h3>
+                <p class="av-text-soft" x-text="task.description || 'No notes'"></p>
+              </div>
+            </template>
+          </div>
+        </AvCard>
+      </div>
+    </AvContainer>
+  </section>
+</AppShell>
