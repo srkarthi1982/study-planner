@@ -30,7 +30,7 @@ export const StudyPlans = defineTable({
  * Tasks inside a study plan.
  * Example: "Read Chapter 2", "Solve 30 MCQs", "Watch 1-hour lecture"
  */
-export const StudyTasks = defineTable({
+export const StudyPlanTasks = defineTable({
   columns: {
     id: column.number({ primaryKey: true, autoIncrement: true }),
     planId: column.number({ references: () => StudyPlans.columns.id }),
@@ -61,12 +61,12 @@ export const StudyTasks = defineTable({
  * Sessions recorded by the learner.
  * Useful for progress analytics.
  */
-export const StudySessions = defineTable({
+export const StudyLogs = defineTable({
   columns: {
     id: column.number({ primaryKey: true, autoIncrement: true }),
     planId: column.number({ references: () => StudyPlans.columns.id }),
     taskId: column.number({
-      references: () => StudyTasks.columns.id,
+      references: () => StudyPlanTasks.columns.id,
       optional: true,
     }),
 
@@ -82,33 +82,8 @@ export const StudySessions = defineTable({
   },
 });
 
-/**
- * Optional: Simple reminders stored client-side or triggered by frontend.
- */
-export const StudyReminders = defineTable({
-  columns: {
-    id: column.number({ primaryKey: true, autoIncrement: true }),
-    ownerId: column.text(),
-
-    planId: column.number({
-      references: () => StudyPlans.columns.id,
-      optional: true,
-    }),
-    taskId: column.number({
-      references: () => StudyTasks.columns.id,
-      optional: true,
-    }),
-
-    message: column.text(),
-    remindAt: column.date(), // no server CRON, just stored metadata
-
-    createdAt: column.date({ default: NOW }),
-  },
-});
-
 export const studyPlannerTables = {
   StudyPlans,
-  StudyTasks,
-  StudySessions,
-  StudyReminders,
+  StudyPlanTasks,
+  StudyLogs,
 } as const;

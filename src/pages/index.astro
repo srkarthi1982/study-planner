@@ -50,6 +50,7 @@ const summary = userId ? await buildStudyPlannerDashboardSummary(userId) : null;
           <AvCard variant="soft" className="av-auth-stack-sm">
             <h2 class="av-card-heading">Today</h2>
             <p class="av-text-soft">{summary ? summary.totals.tasksDueToday : 0} due today</p>
+            <p class="av-text-soft">{summary ? summary.totals.overdueTasks : 0} overdue</p>
             <p class="av-text-soft">{summary ? summary.activity.logsThisWeek : 0} logs this week</p>
           </AvCard>
         </div>
@@ -61,6 +62,11 @@ const summary = userId ? await buildStudyPlannerDashboardSummary(userId) : null;
               {summary?.activity.lastCompletedTaskAt
                 ? `Last completed task: ${new Date(summary.activity.lastCompletedTaskAt).toLocaleString()}`
                 : "No completed tasks yet."}
+            </p>
+            <p class="av-text-soft">
+              {summary?.activity.lastActivityAt
+                ? `Last activity: ${new Date(summary.activity.lastActivityAt).toLocaleString()}`
+                : "No recent activity yet."}
             </p>
           </div>
         </AvCard>

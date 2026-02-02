@@ -1,16 +1,14 @@
 import { defineDb } from "astro:db";
 import {
   StudyPlans,
-  StudyTasks,
-  StudySessions,
-  StudyReminders,
+  StudyPlanTasks,
+  StudyLogs,
 } from "./tables";
 
 export default defineDb({
   tables: {
     StudyPlans,
-    StudyTasks,
-    StudySessions,
-    StudyReminders,
+    StudyPlanTasks,
+    StudyLogs,
   },
 });

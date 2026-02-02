@@ -21,14 +21,14 @@ This file records what was built/changed so far for the study-planner repo. Read
 ## 2. DB Tables
 
 - `StudyPlans`
-- `StudyTasks`
-- `StudySessions` (study logs)
-- `StudyReminders`
+- `StudyPlanTasks`
+- `StudyLogs`
 
 ---
 
 ## 3. Task Log (Newest first)
 
+- 2026-02-02 Aligned table naming (StudyPlanTasks/StudyLogs), removed admin pages, and extended dashboard summary (overdue + lastActivityAt).
 - 2026-02-02 Prepared study-planner V1 for commit/push and handoff to Astra verification.
 - 2026-02-02 Bootstrapped study-planner from AppStarter baseline (env, middleware, layouts, actions, modules).
 - 2026-02-02 Implemented Study Planner V1 (Plans, Tasks, Logs, Today) with FREE_LIMITS + requirePro gating.

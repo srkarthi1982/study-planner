@@ -1,8 +1,8 @@
 import { ActionError, defineAction } from "astro:actions";
 import {
+  StudyLogs,
+  StudyPlanTasks,
   StudyPlans,
-  StudySessions,
-  StudyTasks,
   and,
   count,
   db,
@@ -42,8 +42,8 @@ const requirePlan = async (userId: string, planId: number) => {
 const requireTask = async (planId: number, taskId: number) => {
   const task = await db
     .select()
-    .from(StudyTasks)
-    .where(and(eq(StudyTasks.id, taskId), eq(StudyTasks.planId, planId)))
+    .from(StudyPlanTasks)
+    .where(and(eq(StudyPlanTasks.id, taskId), eq(StudyPlanTasks.planId, planId)))
     .get();
 
   if (!task) {
@@ -77,8 +77,8 @@ const enforceTaskLimit = async (context: Parameters<typeof requireUser>[0], user
   const total = planIds.length
     ? await db
         .select({ total: count() })
-        .from(StudyTasks)
-        .where(inArray(StudyTasks.planId, planIds))
+        .from(StudyPlanTasks)
+        .where(inArray(StudyPlanTasks.planId, planIds))
     : [{ total: 0 }];
 
   if (Number(total?.[0]?.total ?? 0) >= FREE_LIMITS.maxTasks) {
@@ -91,8 +91,8 @@ const enforceLogLimit = async (context: Parameters<typeof requireUser>[0], userI
   const total = planIds.length
     ? await db
         .select({ total: count() })
-        .from(StudySessions)
-        .where(inArray(StudySessions.planId, planIds))
+        .from(StudyLogs)
+        .where(inArray(StudyLogs.planId, planIds))
     : [{ total: 0 }];
 
   if (Number(total?.[0]?.total ?? 0) >= FREE_LIMITS.maxLogs) {
@@ -175,7 +175,7 @@ export const listPlans = defineAction({
 
     const planIds = plans.map((plan) => plan.id);
     const tasks = planIds.length
-      ? await db.select().from(StudyTasks).where(inArray(StudyTasks.planId, planIds))
+      ? await db.select().from(StudyPlanTasks).where(inArray(StudyPlanTasks.planId, planIds))
       : [];
 
     const countsByPlan = tasks.reduce<Record<number, number>>((acc, task) => {
@@ -281,9 +281,13 @@ export const getPlanDetail = defineAction({
 
     const tasks = await db
       .select()
-      .from(StudyTasks)
-      .where(eq(StudyTasks.planId, planId))
-      .orderBy(desc(StudyTasks.updatedAt), desc(StudyTasks.createdAt), desc(StudyTasks.id));
+      .from(StudyPlanTasks)
+      .where(eq(StudyPlanTasks.planId, planId))
+      .orderBy(
+        desc(StudyPlanTasks.updatedAt),
+        desc(StudyPlanTasks.createdAt),
+        desc(StudyPlanTasks.id),
+      );
 
     return { plan, tasks };
   },
@@ -298,7 +302,7 @@ export const createTask = defineAction({
     await enforceTaskLimit(context, user.id);
 
     const [task] = await db
-      .insert(StudyTasks)
+      .insert(StudyPlanTasks)
       .values({
         planId,
         title: input.title,
@@ -349,9 +353,9 @@ export const updateTask = defineAction({
     }
 
     const [task] = await db
-      .update(StudyTasks)
+      .update(StudyPlanTasks)
       .set(updateValues)
-      .where(and(eq(StudyTasks.id, taskId), eq(StudyTasks.planId, planId)))
+      .where(and(eq(StudyPlanTasks.id, taskId), eq(StudyPlanTasks.planId, planId)))
       .returning();
 
     if (task) {
@@ -381,8 +385,8 @@ export const deleteTask = defineAction({
     await requirePlan(user.id, planId);
 
     const [task] = await db
-      .delete(StudyTasks)
-      .where(and(eq(StudyTasks.id, taskId), eq(StudyTasks.planId, planId)))
+      .delete(StudyPlanTasks)
+      .where(and(eq(StudyPlanTasks.id, taskId), eq(StudyPlanTasks.planId, planId)))
       .returning();
 
     if (!task) {
@@ -412,7 +416,7 @@ export const createLog = defineAction({
     const minutes = Number(input.minutes ?? 0);
 
     const [log] = await db
-      .insert(StudySessions)
+      .insert(StudyLogs)
       .values({
         planId,
         taskId,
@@ -440,9 +444,9 @@ export const listLogs = defineAction({
     const logs = planIds.length
       ? await db
           .select()
-          .from(StudySessions)
-          .where(inArray(StudySessions.planId, planIds))
-          .orderBy(desc(StudySessions.startedAt), desc(StudySessions.createdAt), desc(StudySessions.id))
+          .from(StudyLogs)
+          .where(inArray(StudyLogs.planId, planIds))
+          .orderBy(desc(StudyLogs.startedAt), desc(StudyLogs.createdAt), desc(StudyLogs.id))
       : [];
 
     const plans = planIds.length
@@ -455,7 +459,7 @@ export const listLogs = defineAction({
 
     const taskIds = logs.map((log) => log.taskId).filter((id): id is number => Boolean(id));
     const tasks = taskIds.length
-      ? await db.select().from(StudyTasks).where(inArray(StudyTasks.id, taskIds))
+      ? await db.select().from(StudyPlanTasks).where(inArray(StudyPlanTasks.id, taskIds))
       : [];
     const taskMap = tasks.reduce<Record<number, string>>((acc, task) => {
       acc[task.id] = task.title;
@@ -478,7 +482,7 @@ export const getTodaySnapshot = defineAction({
     const planIds = await getPlanIds(user.id);
 
     const tasks = planIds.length
-      ? await db.select().from(StudyTasks).where(inArray(StudyTasks.planId, planIds))
+      ? await db.select().from(StudyPlanTasks).where(inArray(StudyPlanTasks.planId, planIds))
       : [];
 
     const todayStart = new Date();
@@ -515,9 +519,9 @@ export const getTodaySnapshot = defineAction({
           type: "task.due",
         });
         await db
-          .update(StudyTasks)
+          .update(StudyPlanTasks)
           .set({ dueNotifiedAt: now, updatedAt: new Date() })
-          .where(eq(StudyTasks.id, task.id));
+          .where(eq(StudyPlanTasks.id, task.id));
       }
     }
 
@@ -530,9 +534,9 @@ export const getTodaySnapshot = defineAction({
           type: "task.overdue",
         });
         await db
-          .update(StudyTasks)
+          .update(StudyPlanTasks)
           .set({ overdueNotifiedAt: now, updatedAt: new Date() })
-          .where(eq(StudyTasks.id, task.id));
+          .where(eq(StudyPlanTasks.id, task.id));
       }
     }
 

@@ -1,7 +1,7 @@
 import {
+  StudyLogs,
+  StudyPlanTasks,
   StudyPlans,
-  StudySessions,
-  StudyTasks,
   and,
   count,
   db,
@@ -18,11 +18,13 @@ export type StudyPlannerDashboardSummaryV1 = {
     tasks: number;
     tasksCompleted: number;
     tasksDueToday: number;
+    overdueTasks: number;
   };
   activity: {
     logsThisWeek: number;
     minutesThisWeek: number;
     lastCompletedTaskAt?: string | null;
+    lastActivityAt?: string | null;
   };
 };
 
@@ -56,7 +58,7 @@ export const buildStudyPlannerDashboardSummary = async (
   const planIds = planRows.map((row) => row.id);
 
   const tasks = planIds.length
-    ? await db.select().from(StudyTasks).where(inArray(StudyTasks.planId, planIds))
+    ? await db.select().from(StudyPlanTasks).where(inArray(StudyPlanTasks.planId, planIds))
     : [];
 
   const tasksCompleted = tasks.filter((task) => task.status === "done").length;
@@ -72,25 +74,39 @@ export const buildStudyPlannerDashboardSummary = async (
     return due >= todayStart && due < tomorrowStart && task.status !== "done";
   }).length;
 
+  const overdueTasks = tasks.filter((task) => {
+    if (!task.dueDate) return false;
+    const due = new Date(task.dueDate);
+    return due < todayStart && task.status !== "done";
+  }).length;
+
   const weekStart = new Date();
   weekStart.setDate(weekStart.getDate() - 6);
   weekStart.setHours(0, 0, 0, 0);
 
-  const sessions = planIds.length
-    ? await db.select().from(StudySessions).where(inArray(StudySessions.planId, planIds))
+  const logs = planIds.length
+    ? await db.select().from(StudyLogs).where(inArray(StudyLogs.planId, planIds))
     : [];
 
-  const sessionsThisWeek = sessions.filter((session) => {
-    const created = session.startedAt ?? session.createdAt;
+  const logsThisWeek = logs.filter((log) => {
+    const created = log.startedAt ?? log.createdAt;
     if (!created) return false;
     const value = new Date(created);
     return value >= weekStart;
   });
 
-  const minutesThisWeek = sessionsThisWeek.reduce(
-    (sum, session) => sum + Number(session.durationMinutes ?? 0),
+  const minutesThisWeek = logsThisWeek.reduce(
+    (sum, log) => sum + Number(log.durationMinutes ?? 0),
     0,
   );
+
+  const lastLog = logs
+    .filter((log) => log.startedAt || log.createdAt)
+    .sort((a, b) => {
+      const aDate = new Date((a.startedAt ?? a.createdAt) as Date).getTime();
+      const bDate = new Date((b.startedAt ?? b.createdAt) as Date).getTime();
+      return bDate - aDate;
+    })[0];
 
   const lastCompletedTask = tasks
     .filter((task) => task.completedAt)
@@ -109,11 +125,13 @@ export const buildStudyPlannerDashboardSummary = async (
       tasks: tasks.length,
       tasksCompleted,
       tasksDueToday,
+      overdueTasks,
     },
     activity: {
-      logsThisWeek: sessionsThisWeek.length,
+      logsThisWeek: logsThisWeek.length,
       minutesThisWeek,
       lastCompletedTaskAt: toIso(lastCompletedTask?.completedAt),
+      lastActivityAt: toIso(lastLog?.startedAt ?? lastLog?.createdAt ?? null),
     },
   };
 };
