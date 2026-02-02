@@ -28,6 +28,7 @@ This file records what was built/changed so far for the study-planner repo. Read
 
 ## 3. Task Log (Newest first)
 
+- 2026-02-02 Study Planner V1 — FROZEN (production-approved baseline).
 - 2026-02-02 Aligned table naming (StudyPlanTasks/StudyLogs), removed admin pages, and extended dashboard summary (overdue + lastActivityAt).
 - 2026-02-02 Prepared study-planner V1 for commit/push and handoff to Astra verification.
 - 2026-02-02 Bootstrapped study-planner from AppStarter baseline (env, middleware, layouts, actions, modules).
@@ -42,18 +43,19 @@ This file records what was built/changed so far for the study-planner repo. Read
 
 - 2026-02-02 `npm run typecheck` (pass; 7 hints in redirects/baseRepository/seed).
 - 2026-02-02 `npm run build` (pass).
+- 2026-02-02 `npm run db:push` (pass; remote schema updated).
 
 ---
 
 ## 5. Verification Checklist (Template)
 
-- [ ] Auth locals normalized
-- [ ] Billing flags present
-- [ ] `requirePro` guard works
-- [ ] Paywall UI pattern present
-- [ ] Dashboard webhook push works
-- [ ] Notifications helper wired
-- [ ] Admin guard works
-- [ ] Layout + `global.css` correct
-- [ ] Webhook timeouts + retries documented
-- [ ] Build/typecheck green
+- [x] Auth locals normalized
+- [x] Billing flags present
+- [x] `requirePro` guard works
+- [x] Paywall UI pattern present
+- [x] Dashboard webhook push works
+- [x] Notifications helper wired
+- [x] Admin guard works
+- [x] Layout + `global.css` correct
+- [x] Webhook timeouts + retries documented
+- [x] Build/typecheck green
