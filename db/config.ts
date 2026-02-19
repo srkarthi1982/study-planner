@@ -1,5 +1,6 @@
 import { defineDb } from "astro:db";
 import {
+  Faq,
   StudyPlans,
   StudyPlanTasks,
   StudyLogs,
@@ -10,5 +11,6 @@ export default defineDb({
     StudyPlans,
     StudyPlanTasks,
     StudyLogs,
+    Faq,
   },
 });
