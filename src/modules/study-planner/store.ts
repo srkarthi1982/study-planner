@@ -27,6 +27,7 @@ const defaultLogForm = (): LogForm => ({
 
 const defaultState = () => ({
   plans: [] as StudyPlanDTO[],
+  bookmarks: new Set<string>(),
   currentPlan: null as StudyPlanDTO | null,
   tasks: [] as StudyTaskDTO[],
   today: {
@@ -46,6 +47,7 @@ const defaultState = () => ({
 
 export class StudyPlannerStore extends AvBaseStore implements ReturnType<typeof defaultState> {
   plans: StudyPlanDTO[] = [];
+  bookmarks: Set<string> = new Set();
   currentPlan: StudyPlanDTO | null = null;
   tasks: StudyTaskDTO[] = [];
   today = { dueToday: [] as StudyTaskDTO[], overdue: [] as StudyTaskDTO[], upcoming: [] as StudyTaskDTO[] };
@@ -62,6 +64,9 @@ export class StudyPlannerStore extends AvBaseStore implements ReturnType<typeof 
     if (!initial) return;
     Object.assign(this, defaultState(), initial);
     this.plans = (initial.plans ?? []) as StudyPlanDTO[];
+    this.bookmarks = initial.bookmarks instanceof Set
+      ? new Set(Array.from(initial.bookmarks).map((id) => String(id)))
+      : new Set();
     this.currentPlan = (initial.currentPlan ?? null) as StudyPlanDTO | null;
     this.tasks = (initial.tasks ?? []) as StudyTaskDTO[];
     this.logs = (initial.logs ?? []) as StudyLogDTO[];
@@ -78,6 +83,52 @@ export class StudyPlannerStore extends AvBaseStore implements ReturnType<typeof 
 
   setBillingStatus(isPaid: boolean) {
     this.isPaid = Boolean(isPaid);
+  }
+
+  isBookmarked(planId: string | number) {
+    return this.bookmarks.has(String(planId));
+  }
+
+  private setBookmarkState(planId: string | number, saved: boolean) {
+    const key = String(planId);
+    const next = new Set(this.bookmarks);
+    if (saved) {
+      next.add(key);
+    } else {
+      next.delete(key);
+    }
+    this.bookmarks = next;
+  }
+
+  async initBookmarks() {
+    try {
+      const res = await actions.studyPlanner.listPlanBookmarks({});
+      const data = this.unwrap<{ items?: Array<{ planId: string | number }> }>(res);
+      this.bookmarks = new Set((data.items ?? []).map((item) => String(item.planId)));
+    } catch {
+      this.bookmarks = new Set();
+    }
+  }
+
+  async toggleBookmarkPlan(plan: { id: string | number; title?: string | null }) {
+    const planId = String(plan.id ?? "").trim();
+    if (!planId) return;
+
+    const wasSaved = this.isBookmarked(planId);
+    this.setBookmarkState(planId, !wasSaved);
+
+    try {
+      const res = await actions.studyPlanner.toggleBookmark({
+        entityType: "plan",
+        entityId: planId,
+        label: plan.title?.trim() || "Untitled plan",
+      });
+      const data = this.unwrap<{ saved?: boolean }>(res);
+      this.setBookmarkState(planId, Boolean(data?.saved));
+    } catch (err: any) {
+      this.setBookmarkState(planId, wasSaved);
+      this.error = err?.message || "Unable to update bookmark.";
+    }
   }
 
   async loadPlans() {

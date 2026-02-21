@@ -6,14 +6,17 @@ import {
   deleteTask,
   getPlanDetail,
   getTodaySnapshot,
+  listPlanBookmarks,
   listLogs,
   listPlans,
+  toggleBookmark,
   updatePlan,
   updateTask,
 } from "./studyPlanner";
 
 export const studyPlanner = {
   listPlans,
+  listPlanBookmarks,
   createPlan,
   updatePlan,
   archivePlan,
@@ -24,6 +27,7 @@ export const studyPlanner = {
   createLog,
   listLogs,
   getTodaySnapshot,
+  toggleBookmark,
 };
 
 export const server = {

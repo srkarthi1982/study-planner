@@ -82,6 +82,33 @@ export const StudyLogs = defineTable({
   },
 });
 
+export const Bookmark = defineTable({
+  columns: {
+    id: column.number({ primaryKey: true, autoIncrement: true }),
+    userId: column.text(),
+    entityType: column.text(),
+    entityId: column.text(),
+    label: column.text({ optional: true }),
+    meta: column.text({ optional: true }),
+    createdAt: column.date({ default: NOW }),
+  },
+  indexes: [
+    {
+      name: "bookmark_user_entity_unique",
+      on: ["userId", "entityType", "entityId"],
+      unique: true,
+    },
+    {
+      name: "bookmark_user_idx",
+      on: "userId",
+    },
+    {
+      name: "bookmark_entity_lookup_idx",
+      on: ["entityType", "entityId"],
+    },
+  ],
+});
+
 export const Faq = defineTable({
   columns: {
     id: column.number({ primaryKey: true, autoIncrement: true }),
@@ -110,5 +137,6 @@ export const studyPlannerTables = {
   StudyPlans,
   StudyPlanTasks,
   StudyLogs,
+  Bookmark,
   Faq,
 } as const;

@@ -1,5 +1,6 @@
 ---
 import {
+  AvBookmarkButton,
   AvBreadcrumb,
   AvButton,
   AvCard,
@@ -27,7 +28,7 @@ const maxPlans = FREE_LIMITS.maxPlans;
   <section
     class="av-section"
     x-data={`{ maxPlans: ${maxPlans} }`}
-    x-init={`$store.studyPlanner.setBillingStatus(${isPaid}); $store.studyPlanner.loadPlans();`}
+    x-init={`$store.studyPlanner.setBillingStatus(${isPaid}); Promise.all([$store.studyPlanner.loadPlans(), $store.studyPlanner.initBookmarks()]);`}
   >
     <AvContainer>
       <div class="av-auth-stack-lg">
@@ -130,6 +131,14 @@ const maxPlans = FREE_LIMITS.maxPlans;
                   </div>
                   <div class="av-row-wrap">
                     <p class="av-text-soft" x-text="`${plan.tasksCount ?? 0} tasks`"></p>
+                    <AvBookmarkButton
+                      active={false}
+                      activeExpr="$store.studyPlanner.isBookmarked(plan.id)"
+                      title="Save bookmark"
+                      activeTitle="Remove bookmark"
+                      onClick="$store.studyPlanner.toggleBookmarkPlan(plan)"
+                      size="sm"
+                    />
                     <a class="av-btn-primary av-btn-sm" x-bind:href="`/plans/${plan.id}`">Open</a>
                   </div>
                 </div>

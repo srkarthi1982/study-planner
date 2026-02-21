@@ -12,6 +12,7 @@ import {
 } from "astro:db";
 import { z } from "astro:schema";
 import { requirePro, requireUser } from "./_guards";
+import { listPlanBookmarks, toggleBookmark } from "./bookmarks";
 import { FREE_LIMITS } from "../lib/freeLimits";
 import { buildStudyPlannerDashboardSummary } from "../dashboard/summary.schema";
 import { pushStudyPlannerSummary } from "../lib/pushActivity";
@@ -191,6 +192,8 @@ export const listPlans = defineAction({
     return { plans: enriched };
   },
 });
+
+export { listPlanBookmarks, toggleBookmark };
 
 export const createPlan = defineAction({
   input: planPayloadSchema,

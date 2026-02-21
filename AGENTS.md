@@ -67,6 +67,7 @@ This file records what was built/changed so far for the study-planner repo. Read
 
 ## Task Log (Recent)
 - Keep newest first; include date and short summary.
+- 2026-02-21 Study Planner Bookmarks V1 shipped (plan): added DB `Bookmark` table + indexes/unique and wired DB config; added bookmark actions (`listPlanBookmarks`/`toggleBookmark`) and exposed under studyPlanner actions namespace; added store bookmark Set with `initBookmarks`, `isBookmarked`, and optimistic `toggleBookmarkPlan`; added `AvBookmarkButton` to `/plans` cards; added protected `/bookmarks` page using `AvBookmarksEmpty`/`AvBookmarksList`; enabled gated mini-app menu link via `bookmarksHref=\"/bookmarks\"`; bumped `@ansiversa/components` to exact `0.0.142`. Verification: `npm run db:push` ✅, `npm run typecheck` ✅ (existing 7 hints), `npm run build` ✅. DB sanity: remote `Bookmark` table exists; rows currently empty in this environment. Caveat: production authenticated UI smoke test not executed from CLI-only session.
 - 2026-02-19 Bumped `/components` to `0.0.141` and refreshed lockfile for latest shared FAQ order-arrow release; verification: `npm run build` ✅.
 - 2026-02-19 Bumped `/components` to `0.0.140` and refreshed lockfile to consume the latest shared release; verification: `npm run build` ✅.
 - 2026-02-19 Bumped `@ansiversa/components` to `0.0.139` (AvMiniAppBar AppLogo support) and verified with `npm run build` (pass).
