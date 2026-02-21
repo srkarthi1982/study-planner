@@ -2,6 +2,8 @@ import { ActionError, defineAction, type ActionAPIContext } from "astro:actions"
 import { Bookmark, StudyPlans, and, db, desc, eq, inArray } from "astro:db";
 import { z } from "astro:schema";
 import { requireUser } from "./_guards";
+import { buildStudyPlannerDashboardSummary } from "../dashboard/summary.schema";
+import { pushStudyPlannerSummary } from "../lib/pushActivity";
 
 const bookmarkEntityTypeSchema = z.enum(["plan"]);
 
@@ -26,6 +28,21 @@ const normalizeMeta = (value?: unknown) => {
     return JSON.stringify(value);
   } catch {
     return undefined;
+  }
+};
+
+const pushBookmarkSummary = async (userId: string, eventType: string) => {
+  try {
+    const summary = await buildStudyPlannerDashboardSummary(userId);
+    await pushStudyPlannerSummary({
+      userId,
+      eventType,
+      summary,
+    });
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.warn("bookmark summary push failed", error);
+    }
   }
 };
 
@@ -112,6 +129,7 @@ export const toggleBookmark = defineAction({
 
     if (existing?.id) {
       await db.delete(Bookmark).where(eq(Bookmark.id, existing.id));
+      await pushBookmarkSummary(user.id, "bookmark.removed");
       return { saved: false };
     }
 
@@ -123,6 +141,7 @@ export const toggleBookmark = defineAction({
         label,
         meta,
       });
+      await pushBookmarkSummary(user.id, "bookmark.saved");
       return { saved: true };
     } catch {
       const stillExists = await db

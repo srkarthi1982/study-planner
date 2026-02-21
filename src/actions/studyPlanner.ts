@@ -136,8 +136,14 @@ const emitDueNotification = async (params: {
 };
 
 const pushSummary = async (userId: string, eventType: string) => {
-  const summary = await buildStudyPlannerDashboardSummary(userId);
-  await pushStudyPlannerSummary({ userId, eventType, summary });
+  try {
+    const summary = await buildStudyPlannerDashboardSummary(userId);
+    await pushStudyPlannerSummary({ userId, eventType, summary });
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.warn("study-planner summary push failed", error);
+    }
+  }
 };
 
 const planPayloadSchema = z.object({
@@ -162,6 +168,14 @@ const logPayloadSchema = z.object({
   occurredAt: z.coerce.date().optional(),
   minutes: z.number().int().nonnegative().optional(),
   notes: z.string().optional(),
+});
+
+export const getDashboardSummary = defineAction({
+  handler: async (_input, context) => {
+    const user = requireUser(context);
+    const summary = await buildStudyPlannerDashboardSummary(user.id);
+    return summary;
+  },
 });
 
 export const listPlans = defineAction({

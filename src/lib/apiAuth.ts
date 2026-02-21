@@ -26,11 +26,9 @@ export const requireAdminApiAccess = (
   cookies: APIContext["cookies"],
   request: Request,
 ): Response | null => {
-  const token = resolveApiToken(cookies, request.headers.get("authorization"));
-  const session = token ? verifySessionToken(token) : null;
-
-  if (!session?.userId) {
-    return json(401, { error: "Unauthorized.", code: "UNAUTHORIZED" });
+  const session = requireUserApiAccess(cookies, request);
+  if (session instanceof Response) {
+    return session;
   }
 
   const roleId = Number(session.roleId);
@@ -39,4 +37,21 @@ export const requireAdminApiAccess = (
   }
 
   return null;
+};
+
+export const requireUserApiAccess = (
+  cookies: APIContext["cookies"],
+  request: Request,
+): { userId: string; roleId?: number } | Response => {
+  const token = resolveApiToken(cookies, request.headers.get("authorization"));
+  const session = token ? verifySessionToken(token) : null;
+
+  if (!session?.userId) {
+    return json(401, { error: "Unauthorized.", code: "UNAUTHORIZED" });
+  }
+
+  return {
+    userId: session.userId,
+    roleId: session.roleId,
+  };
 };

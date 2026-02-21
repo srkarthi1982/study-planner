@@ -1,4 +1,5 @@
 import {
+  Bookmark,
   StudyLogs,
   StudyPlanTasks,
   StudyPlans,
@@ -10,21 +11,22 @@ import {
 } from "astro:db";
 
 export type StudyPlannerDashboardSummaryV1 = {
+  appId: "study-planner";
   version: 1;
-  generatedAt: string;
+  updatedAt: string;
   totals: {
-    plans: number;
-    activePlans: number;
-    tasks: number;
+    plansTotal: number;
+    plansActive: number;
+    tasksTotal: number;
     tasksCompleted: number;
     tasksDueToday: number;
-    overdueTasks: number;
-  };
-  activity: {
     logsThisWeek: number;
-    minutesThisWeek: number;
-    lastCompletedTaskAt?: string | null;
-    lastActivityAt?: string | null;
+    bookmarksTotal: number;
+  };
+  recent: {
+    recentPlans: Array<{ id: number; title: string; updatedAt: string | null }>;
+    recentTasks: Array<{ id: number; title: string; updatedAt: string | null }>;
+    recentLogs: Array<{ id: number; title: string; createdAt: string | null }>;
   };
 };
 
@@ -38,7 +40,7 @@ const toIso = (value?: Date | string | null) => {
 export const buildStudyPlannerDashboardSummary = async (
   userId: string,
 ): Promise<StudyPlannerDashboardSummaryV1> => {
-  const generatedAt = new Date().toISOString();
+  const updatedAt = new Date().toISOString();
 
   const [{ total: plansRaw } = { total: 0 }] = await db
     .select({ total: count() })
@@ -51,11 +53,15 @@ export const buildStudyPlannerDashboardSummary = async (
     .where(and(eq(StudyPlans.ownerId, userId), eq(StudyPlans.status, "active")));
 
   const planRows = await db
-    .select({ id: StudyPlans.id })
+    .select({
+      id: StudyPlans.id,
+      title: StudyPlans.title,
+      updatedAt: StudyPlans.updatedAt,
+    })
     .from(StudyPlans)
     .where(eq(StudyPlans.ownerId, userId));
 
-  const planIds = planRows.map((row) => row.id);
+  const planIds = planRows.map((row) => Number(row.id)).filter((id) => Number.isFinite(id));
 
   const tasks = planIds.length
     ? await db.select().from(StudyPlanTasks).where(inArray(StudyPlanTasks.planId, planIds))
@@ -74,12 +80,6 @@ export const buildStudyPlannerDashboardSummary = async (
     return due >= todayStart && due < tomorrowStart && task.status !== "done";
   }).length;
 
-  const overdueTasks = tasks.filter((task) => {
-    if (!task.dueDate) return false;
-    const due = new Date(task.dueDate);
-    return due < todayStart && task.status !== "done";
-  }).length;
-
   const weekStart = new Date();
   weekStart.setDate(weekStart.getDate() - 6);
   weekStart.setHours(0, 0, 0, 0);
@@ -88,50 +88,86 @@ export const buildStudyPlannerDashboardSummary = async (
     ? await db.select().from(StudyLogs).where(inArray(StudyLogs.planId, planIds))
     : [];
 
-  const logsThisWeek = logs.filter((log) => {
+  const logsThisWeekRows = logs.filter((log) => {
     const created = log.startedAt ?? log.createdAt;
     if (!created) return false;
     const value = new Date(created);
     return value >= weekStart;
   });
 
-  const minutesThisWeek = logsThisWeek.reduce(
-    (sum, log) => sum + Number(log.durationMinutes ?? 0),
-    0,
+  const [{ total: bookmarksRaw } = { total: 0 }] = await db
+    .select({ total: count() })
+    .from(Bookmark)
+    .where(and(eq(Bookmark.userId, userId), eq(Bookmark.entityType, "plan")));
+
+  const planTitleMap = new Map<number, string>(
+    planRows.map((plan) => [Number(plan.id), plan.title ?? "Untitled plan"]),
+  );
+  const taskTitleMap = new Map<number, string>(
+    tasks.map((task) => [Number(task.id), task.title ?? "Untitled task"]),
   );
 
-  const lastLog = logs
-    .filter((log) => log.startedAt || log.createdAt)
+  const recentPlans = [...planRows]
     .sort((a, b) => {
-      const aDate = new Date((a.startedAt ?? a.createdAt) as Date).getTime();
-      const bDate = new Date((b.startedAt ?? b.createdAt) as Date).getTime();
+      const aDate = new Date(a.updatedAt ?? 0).getTime();
+      const bDate = new Date(b.updatedAt ?? 0).getTime();
       return bDate - aDate;
-    })[0];
+    })
+    .slice(0, 5)
+    .map((plan) => ({
+      id: Number(plan.id),
+      title: plan.title ?? "Untitled plan",
+      updatedAt: toIso(plan.updatedAt),
+    }));
 
-  const lastCompletedTask = tasks
-    .filter((task) => task.completedAt)
+  const recentTasks = [...tasks]
     .sort((a, b) => {
-      const aDate = new Date(a.completedAt as Date).getTime();
-      const bDate = new Date(b.completedAt as Date).getTime();
+      const aDate = new Date(a.updatedAt ?? a.createdAt ?? 0).getTime();
+      const bDate = new Date(b.updatedAt ?? b.createdAt ?? 0).getTime();
       return bDate - aDate;
-    })[0];
+    })
+    .slice(0, 5)
+    .map((task) => ({
+      id: Number(task.id),
+      title: task.title ?? "Untitled task",
+      updatedAt: toIso(task.updatedAt ?? task.createdAt),
+    }));
+
+  const recentLogs = [...logs]
+    .sort((a, b) => {
+      const aDate = new Date(a.startedAt ?? a.createdAt ?? 0).getTime();
+      const bDate = new Date(b.startedAt ?? b.createdAt ?? 0).getTime();
+      return bDate - aDate;
+    })
+    .slice(0, 5)
+    .map((log) => {
+      const taskTitle = log.taskId ? taskTitleMap.get(Number(log.taskId)) : undefined;
+      const planTitle = planTitleMap.get(Number(log.planId));
+      const title = taskTitle || planTitle || "Study log";
+      return {
+        id: Number(log.id),
+        title,
+        createdAt: toIso(log.startedAt ?? log.createdAt),
+      };
+    });
 
   return {
+    appId: "study-planner",
     version: 1,
-    generatedAt,
+    updatedAt,
     totals: {
-      plans: Number(plansRaw ?? 0),
-      activePlans: Number(activeRaw ?? 0),
-      tasks: tasks.length,
+      plansTotal: Number(plansRaw ?? 0),
+      plansActive: Number(activeRaw ?? 0),
+      tasksTotal: tasks.length,
       tasksCompleted,
       tasksDueToday,
-      overdueTasks,
+      logsThisWeek: logsThisWeekRows.length,
+      bookmarksTotal: Number(bookmarksRaw ?? 0),
     },
-    activity: {
-      logsThisWeek: logsThisWeek.length,
-      minutesThisWeek,
-      lastCompletedTaskAt: toIso(lastCompletedTask?.completedAt),
-      lastActivityAt: toIso(lastLog?.startedAt ?? lastLog?.createdAt ?? null),
+    recent: {
+      recentPlans,
+      recentTasks,
+      recentLogs,
     },
   };
 };

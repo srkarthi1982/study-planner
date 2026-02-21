@@ -39,19 +39,19 @@ const summary = userId ? await buildStudyPlannerDashboardSummary(userId) : null;
         <div class="av-grid-cols-3">
           <AvCard variant="soft" className="av-auth-stack-sm">
             <h2 class="av-card-heading">Plans</h2>
-            <p class="av-text-soft">{summary ? summary.totals.plans : 0} total</p>
-            <p class="av-text-soft">{summary ? summary.totals.activePlans : 0} active</p>
+            <p class="av-text-soft">{summary ? summary.totals.plansTotal : 0} total</p>
+            <p class="av-text-soft">{summary ? summary.totals.plansActive : 0} active</p>
           </AvCard>
           <AvCard variant="soft" className="av-auth-stack-sm">
             <h2 class="av-card-heading">Tasks</h2>
-            <p class="av-text-soft">{summary ? summary.totals.tasks : 0} total</p>
+            <p class="av-text-soft">{summary ? summary.totals.tasksTotal : 0} total</p>
             <p class="av-text-soft">{summary ? summary.totals.tasksCompleted : 0} completed</p>
           </AvCard>
           <AvCard variant="soft" className="av-auth-stack-sm">
             <h2 class="av-card-heading">Today</h2>
             <p class="av-text-soft">{summary ? summary.totals.tasksDueToday : 0} due today</p>
-            <p class="av-text-soft">{summary ? summary.totals.overdueTasks : 0} overdue</p>
-            <p class="av-text-soft">{summary ? summary.activity.logsThisWeek : 0} logs this week</p>
+            <p class="av-text-soft">{summary ? summary.totals.logsThisWeek : 0} logs this week</p>
+            <p class="av-text-soft">{summary ? summary.totals.bookmarksTotal : 0} bookmarks</p>
           </AvCard>
         </div>
 
@@ -59,14 +59,14 @@ const summary = userId ? await buildStudyPlannerDashboardSummary(userId) : null;
           <div class="av-auth-stack-xs">
             <h2 class="av-card-heading">Recent activity</h2>
             <p class="av-text-soft">
-              {summary?.activity.lastCompletedTaskAt
-                ? `Last completed task: ${new Date(summary.activity.lastCompletedTaskAt).toLocaleString()}`
-                : "No completed tasks yet."}
+              {summary?.recent.recentTasks?.[0]?.updatedAt
+                ? `Last task update: ${new Date(summary.recent.recentTasks[0].updatedAt).toLocaleString()}`
+                : "No task updates yet."}
             </p>
             <p class="av-text-soft">
-              {summary?.activity.lastActivityAt
-                ? `Last activity: ${new Date(summary.activity.lastActivityAt).toLocaleString()}`
-                : "No recent activity yet."}
+              {summary?.recent.recentLogs?.[0]?.createdAt
+                ? `Last log: ${new Date(summary.recent.recentLogs[0].createdAt).toLocaleString()}`
+                : "No recent logs yet."}
             </p>
           </div>
         </AvCard>

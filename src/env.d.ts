@@ -19,6 +19,12 @@ interface ImportMetaEnv {
   /** Parent base URL (used for redirects + notification count) */
   readonly ANSIVERSA_PARENT_BASE_URL?: string;
 
+  /** Optional: Parent app URL (fallback to root app URL) */
+  readonly PARENT_APP_URL?: string;
+
+  /** Optional: Webhook secret for parent app integrations */
+  readonly ANSIVERSA_WEBHOOK_SECRET?: string;
+
   /** Dashboard webhook endpoint */
   readonly ANSIVERSA_DASHBOARD_WEBHOOK_URL?: string;
 
