@@ -67,6 +67,7 @@ This file records what was built/changed so far for the study-planner repo. Read
 
 ## Task Log (Recent)
 - Keep newest first; include date and short summary.
+- 2026-02-22 Delete flow standardized (Plan tasks): replaced direct delete with icon-only action + `AvConfirmDialog` confirmation showing task name (`Delete '<name>'?`), added pending-delete state in store, confirmed delete now re-fetches plan detail for consistent UI refresh, and failure retry behavior (error message + dialog reopen). Verification: `npm run build` ✅.
 - 2026-02-22 FAQ content refresh (production): replaced placeholder/demo FAQ entries with real Study Planner user FAQs (5) via `db/seed-faq-content.ts` using audience=`user`, published entries, and stable sort order; aligned content with current Study Planner V1 behavior and ecosystem FAQ contract.
 - 2026-02-22 Mini-app bar label fix: upgraded `@ansiversa/components` to `0.0.146` to consume shared registry metadata for `study-planner` (`name: Study Planner`) so navbar title shows display name instead of slug; home-link/menu behavior unchanged. Verification: `npm run build` ✅.
 - 2026-02-22 Mini-app navbar home-link rollout: upgraded `@ansiversa/components` to `0.0.145` so `AvMiniAppBar` app title/icon area is clickable and navigates to mini-app home (`links[0].href`, fallback `/`) with accessible aria-label + focus-visible state; verified no behavior changes to 3-dot menu. Verification: `npm run build` ✅.

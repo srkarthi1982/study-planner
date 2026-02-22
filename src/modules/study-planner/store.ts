@@ -42,6 +42,9 @@ const defaultState = () => ({
   loading: false,
   error: null as string | null,
   success: null as string | null,
+  pendingDeleteTaskId: null as number | null,
+  pendingDeleteTaskTitle: null as string | null,
+  pendingDeleteTaskPlanId: null as number | null,
   isPaid: false,
 });
 
@@ -58,6 +61,9 @@ export class StudyPlannerStore extends AvBaseStore implements ReturnType<typeof 
   loading = false;
   error: string | null = null;
   success: string | null = null;
+  pendingDeleteTaskId: number | null = null;
+  pendingDeleteTaskTitle: string | null = null;
+  pendingDeleteTaskPlanId: number | null = null;
   isPaid = false;
 
   init(initial?: Partial<ReturnType<typeof defaultState>>) {
@@ -248,16 +254,45 @@ export class StudyPlannerStore extends AvBaseStore implements ReturnType<typeof 
     }
   }
 
-  async deleteTask(task: StudyTaskDTO, planId: number) {
+  requestDeleteTask(task: StudyTaskDTO, planId: number) {
+    const taskId = Number(task?.id);
+    if (!Number.isFinite(taskId) || taskId <= 0 || !Number.isFinite(planId) || planId <= 0) return;
+    this.pendingDeleteTaskId = taskId;
+    this.pendingDeleteTaskPlanId = planId;
+    this.pendingDeleteTaskTitle = task?.title?.trim() || null;
+  }
+
+  clearPendingDeleteTask() {
+    this.pendingDeleteTaskId = null;
+    this.pendingDeleteTaskTitle = null;
+    this.pendingDeleteTaskPlanId = null;
+  }
+
+  async confirmDeleteTask() {
+    if (!this.pendingDeleteTaskId || !this.pendingDeleteTaskPlanId) return;
+
     this.loading = true;
     this.error = null;
+    this.success = null;
+
+    const taskId = this.pendingDeleteTaskId;
+    const planId = this.pendingDeleteTaskPlanId;
 
     try {
-      await actions.studyPlanner.deleteTask({ id: task.id, planId });
-      this.tasks = this.tasks.filter((item) => item.id !== task.id);
-      this.success = "Task deleted.";
+      await actions.studyPlanner.deleteTask({ id: taskId, planId });
+      await this.loadPlanDetail(planId);
+      this.success = "Deleted.";
+      this.clearPendingDeleteTask();
     } catch (err: any) {
-      this.error = err?.message || "Unable to delete task.";
+      this.error = "Failed to delete. Please try again.";
+      if (typeof window !== "undefined") {
+        window.setTimeout(() => {
+          (window as any).AvDialog?.open?.("study-planner-task-delete-dialog");
+        }, 0);
+      }
+      if (import.meta.env.DEV) {
+        console.warn("Failed to delete task", err);
+      }
     } finally {
       this.loading = false;
     }

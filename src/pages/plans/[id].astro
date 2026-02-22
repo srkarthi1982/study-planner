@@ -3,8 +3,10 @@ import {
   AvBreadcrumb,
   AvButton,
   AvCard,
+  AvConfirmDialog,
   AvContainer,
   AvEmptyState,
+  AvIcon,
   AvInput,
   AvTextarea,
 } from "@ansiversa/components";
@@ -134,11 +136,16 @@ const maxTasks = FREE_LIMITS.maxTasks;
                       @click="$store.studyPlanner.toggleTaskCompletion(task, ${planId})"
                       x-text="task.status === 'done' ? 'Reopen' : 'Complete'"
                     ></button>
-                    <button
-                      class="av-btn-ghost av-btn-sm"
+                    <AvButton
+                      variant="ghost"
+                      size="sm"
                       type="button"
-                      @click="$store.studyPlanner.deleteTask(task, ${planId})"
-                    >Delete</button>
+                      title="Delete"
+                      x-bind:aria-label="`Delete ${task.title || 'item'}`"
+                      @click="$store.studyPlanner.requestDeleteTask(task, ${planId}); const dialogTitle = document.getElementById('study-planner-task-delete-dialog-title'); if (dialogTitle) dialogTitle.textContent = $store.studyPlanner.pendingDeleteTaskTitle ? `Delete '${$store.studyPlanner.pendingDeleteTaskTitle}'?` : 'Delete this item?'; window.AvDialog?.open('study-planner-task-delete-dialog')"
+                    >
+                      <AvIcon name="trash" size="sm" />
+                    </AvButton>
                   </div>
                 </div>
                 <div class="av-row-between">
@@ -150,6 +157,17 @@ const maxTasks = FREE_LIMITS.maxTasks;
           </div>
         </AvCard>
       </div>
+
+      <AvConfirmDialog
+        id="study-planner-task-delete-dialog"
+        headline="Delete this item?"
+        description="This action cannot be undone."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="danger"
+        @av-confirm="$store.studyPlanner.confirmDeleteTask()"
+        @av-cancel="$store.studyPlanner.clearPendingDeleteTask()"
+      />
     </AvContainer>
   </section>
 </AppShell>
