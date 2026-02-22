@@ -289,6 +289,32 @@ export const archivePlan = defineAction({
   },
 });
 
+export const deletePlan = defineAction({
+  input: z.object({ id: z.union([z.number(), z.string()]) }),
+  handler: async (input, context) => {
+    const user = requireUser(context);
+    const planId = parseNumberId(input.id, "Plan id");
+    await requirePlan(user.id, planId);
+
+    // Clean child rows first to avoid leaving orphan records.
+    await db.delete(StudyLogs).where(eq(StudyLogs.planId, planId));
+    await db.delete(StudyPlanTasks).where(eq(StudyPlanTasks.planId, planId));
+
+    const [plan] = await db
+      .delete(StudyPlans)
+      .where(and(eq(StudyPlans.id, planId), eq(StudyPlans.ownerId, user.id)))
+      .returning();
+
+    if (!plan) {
+      throw new ActionError({ code: "NOT_FOUND", message: "Plan not found." });
+    }
+
+    await pushSummary(user.id, "plan.deleted");
+
+    return { plan };
+  },
+});
+
 export const getPlanDetail = defineAction({
   input: z.object({ id: z.union([z.number(), z.string()]) }),
   handler: async (input, context) => {

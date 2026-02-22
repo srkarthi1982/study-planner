@@ -45,6 +45,8 @@ const defaultState = () => ({
   pendingDeleteTaskId: null as number | null,
   pendingDeleteTaskTitle: null as string | null,
   pendingDeleteTaskPlanId: null as number | null,
+  pendingDeletePlanId: null as number | null,
+  pendingDeletePlanTitle: null as string | null,
   isPaid: false,
 });
 
@@ -64,6 +66,8 @@ export class StudyPlannerStore extends AvBaseStore implements ReturnType<typeof 
   pendingDeleteTaskId: number | null = null;
   pendingDeleteTaskTitle: string | null = null;
   pendingDeleteTaskPlanId: number | null = null;
+  pendingDeletePlanId: number | null = null;
+  pendingDeletePlanTitle: string | null = null;
   isPaid = false;
 
   init(initial?: Partial<ReturnType<typeof defaultState>>) {
@@ -177,6 +181,46 @@ export class StudyPlannerStore extends AvBaseStore implements ReturnType<typeof 
       }
     } catch (err: any) {
       this.error = err?.message || "Unable to create plan.";
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  requestDeletePlan(plan: StudyPlanDTO) {
+    const planId = Number(plan?.id);
+    if (!Number.isFinite(planId) || planId <= 0) return;
+    this.pendingDeletePlanId = planId;
+    this.pendingDeletePlanTitle = plan?.title?.trim() || null;
+  }
+
+  clearPendingDeletePlan() {
+    this.pendingDeletePlanId = null;
+    this.pendingDeletePlanTitle = null;
+  }
+
+  async confirmDeletePlan() {
+    if (!this.pendingDeletePlanId) return;
+
+    this.loading = true;
+    this.error = null;
+    this.success = null;
+    const planId = this.pendingDeletePlanId;
+
+    try {
+      await actions.studyPlanner.deletePlan({ id: planId });
+      await this.loadPlans();
+      this.success = "Deleted.";
+      this.clearPendingDeletePlan();
+    } catch (err: any) {
+      this.error = "Failed to delete. Please try again.";
+      if (typeof window !== "undefined") {
+        window.setTimeout(() => {
+          (window as any).AvDialog?.open?.("study-planner-plan-delete-dialog");
+        }, 0);
+      }
+      if (import.meta.env.DEV) {
+        console.warn("Failed to delete plan", err);
+      }
     } finally {
       this.loading = false;
     }

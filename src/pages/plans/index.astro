@@ -4,8 +4,10 @@ import {
   AvBreadcrumb,
   AvButton,
   AvCard,
+  AvConfirmDialog,
   AvContainer,
   AvEmptyState,
+  AvIcon,
   AvInput,
   AvTextarea,
 } from "@ansiversa/components";
@@ -139,6 +141,16 @@ const maxPlans = FREE_LIMITS.maxPlans;
                       onClick="$store.studyPlanner.toggleBookmarkPlan(plan)"
                       size="sm"
                     />
+                    <AvButton
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      title="Delete"
+                      x-bind:aria-label="`Delete ${plan.title || 'item'}`"
+                      @click.prevent="$store.studyPlanner.requestDeletePlan(plan); const dialogTitle = document.getElementById('study-planner-plan-delete-dialog-title'); if (dialogTitle) dialogTitle.textContent = $store.studyPlanner.pendingDeletePlanTitle ? `Delete '${$store.studyPlanner.pendingDeletePlanTitle}'?` : 'Delete this item?'; window.AvDialog?.open('study-planner-plan-delete-dialog')"
+                    >
+                      <AvIcon name="trash" size="sm" />
+                    </AvButton>
                     <a class="av-btn-primary av-btn-sm" x-bind:href="`/plans/${plan.id}`">Open</a>
                   </div>
                 </div>
@@ -147,6 +159,17 @@ const maxPlans = FREE_LIMITS.maxPlans;
             </template>
           </div>
         </AvCard>
+
+        <AvConfirmDialog
+          id="study-planner-plan-delete-dialog"
+          headline="Delete this item?"
+          description="This action cannot be undone."
+          confirmLabel="Delete"
+          cancelLabel="Cancel"
+          variant="danger"
+          @av-confirm="$store.studyPlanner.confirmDeletePlan()"
+          @av-cancel="$store.studyPlanner.clearPendingDeletePlan()"
+        />
       </div>
     </AvContainer>
   </section>
