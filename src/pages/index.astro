@@ -1,76 +1,267 @@
 ---
-import { AvBreadcrumb, AvButton, AvCard, AvContainer } from "@ansiversa/components";
 import AppShell from "../layouts/AppShell.astro";
+import { AvButton, AvContainer, AvTimeline } from "@ansiversa/components";
 import { buildStudyPlannerDashboardSummary } from "../dashboard/summary.schema";
 
 const title = "Study Planner – Ansiversa";
-const description = "Plan study sessions, manage tasks, and stay on track.";
+const description = "Plan sessions, track tasks, and stay consistent without clutter.";
 
 const userId = Astro.locals.user?.id;
 const summary = userId ? await buildStudyPlannerDashboardSummary(userId) : null;
+
+const timelineItems = [
+  {
+    date: "Pillar 01",
+    title: "Plan-first structure",
+    body: "Start every week with clear plans before tasks and logs get noisy.",
+  },
+  {
+    date: "Pillar 02",
+    title: "Daily focus view",
+    body: "See what matters today and execute without context switching.",
+  },
+  {
+    date: "Pillar 03",
+    title: "Logs + streak consistency",
+    body: "Track progress every day and keep momentum visible over time.",
+  },
+  {
+    date: "Pillar 04",
+    title: "Minimal, calm workflow",
+    body: "A clean interface designed to reduce friction and keep focus high.",
+  },
+];
+
+const formatCompact = (value: number) => {
+  if (value >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(2).replace(/\.?0+$/, "")}M`;
+  }
+  if (value >= 1_000) {
+    return `${(value / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
+  }
+  return value.toLocaleString();
+};
 ---
 
 <AppShell title={title} description={description}>
-  <section class="av-faq-public__crumb">
-    <AvContainer>
-      <AvBreadcrumb items={[{ label: "Home" }]} />
+  <section class="sp-hero">
+    <AvContainer size="default">
+      <div class="sp-hero__grid">
+        <div class="sp-hero__text">
+          <div class="av-kicker">
+            <span>Learning · Ansiversa Mini App</span>
+          </div>
+          <h1 class="sp-hero__title">Study Planner</h1>
+          <p class="sp-hero__lead">
+            Plan sessions, track tasks, and stay consistent without clutter.
+            Keep your study week focused with a single calm workflow.
+          </p>
+          <div class="sp-hero__bullets">
+            <span>Plan weekly goals before task noise builds up</span>
+            <span>Use Today view to prioritize what matters now</span>
+            <span>Log progress daily to keep momentum visible</span>
+          </div>
+          <div class="sp-hero__cta">
+            <AvButton href="/plans">Create plan</AvButton>
+            <AvButton href="/today" variant="ghost">View today</AvButton>
+          </div>
+        </div>
+
+        <div class="sp-hero__panel">
+          <div class="sp-hero__panel-card">
+            <p class="sp-hero__panel-kicker">Your flow</p>
+            <h3 class="sp-hero__panel-title">Three steps to a focused week</h3>
+            <ol class="sp-hero__panel-steps">
+              <li><span>1</span>Create a plan</li>
+              <li><span>2</span>Add tasks + sessions</li>
+              <li><span>3</span>Log progress daily</li>
+            </ol>
+            <div class="sp-hero__panel-footer">
+              <div>
+                <p class="sp-hero__panel-label">Session length</p>
+                <p class="sp-hero__panel-value">~45 min</p>
+              </div>
+              <div>
+                <p class="sp-hero__panel-label">Focus style</p>
+                <p class="sp-hero__panel-value">Single-task</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sp-hero__stats">
+        <div class="sp-stat">
+          <p class="sp-stat__value">{formatCompact(summary ? summary.totals.plansActive : 0)}</p>
+          <p class="sp-stat__label">Active plans</p>
+        </div>
+        <div class="sp-stat">
+          <p class="sp-stat__value">{formatCompact(summary ? summary.totals.tasksTotal : 0)}</p>
+          <p class="sp-stat__label">Tasks tracked</p>
+        </div>
+        <div class="sp-stat">
+          <p class="sp-stat__value">{formatCompact(summary ? summary.totals.logsThisWeek : 0)}</p>
+          <p class="sp-stat__label">Sessions logged</p>
+        </div>
+      </div>
     </AvContainer>
   </section>
 
   <section class="av-section">
-    <AvContainer>
-      <div class="av-auth-stack-lg">
-        <AvCard className="av-auth-stack-md">
-          <div class="av-auth-stack-sm">
-            <div>
-              <p class="av-kicker">Study Planner</p>
-              <h1 class="av-section-title">Your study dashboard</h1>
-              <p class="av-text-soft">
-                Keep plans, tasks, and logs in one focused flow.
-              </p>
-            </div>
-            <div class="av-row-wrap">
-              <AvButton href="/plans">Create plan</AvButton>
-              <AvButton href="/today" variant="ghost">View today</AvButton>
-            </div>
-          </div>
-        </AvCard>
-
-        <div class="av-grid-cols-3">
-          <AvCard variant="soft" className="av-auth-stack-sm">
-            <h2 class="av-card-heading">Plans</h2>
-            <p class="av-text-soft">{summary ? summary.totals.plansTotal : 0} total</p>
-            <p class="av-text-soft">{summary ? summary.totals.plansActive : 0} active</p>
-          </AvCard>
-          <AvCard variant="soft" className="av-auth-stack-sm">
-            <h2 class="av-card-heading">Tasks</h2>
-            <p class="av-text-soft">{summary ? summary.totals.tasksTotal : 0} total</p>
-            <p class="av-text-soft">{summary ? summary.totals.tasksCompleted : 0} completed</p>
-          </AvCard>
-          <AvCard variant="soft" className="av-auth-stack-sm">
-            <h2 class="av-card-heading">Today</h2>
-            <p class="av-text-soft">{summary ? summary.totals.tasksDueToday : 0} due today</p>
-            <p class="av-text-soft">{summary ? summary.totals.logsThisWeek : 0} logs this week</p>
-            <p class="av-text-soft">{summary ? summary.totals.bookmarksTotal : 0} bookmarks</p>
-          </AvCard>
-        </div>
-
-        <AvCard variant="soft" className="av-auth-stack-md">
-          <div class="av-auth-stack-xs">
-            <h2 class="av-card-heading">Recent activity</h2>
-            <p class="av-text-soft">
-              {summary?.recent.recentTasks?.[0]?.updatedAt
-                ? `Last task update: ${new Date(summary.recent.recentTasks[0].updatedAt).toLocaleString()}`
-                : "No task updates yet."}
-            </p>
-            <p class="av-text-soft">
-              {summary?.recent.recentLogs?.[0]?.createdAt
-                ? `Last log: ${new Date(summary.recent.recentLogs[0].createdAt).toLocaleString()}`
-                : "No recent logs yet."}
-            </p>
-          </div>
-        </AvCard>
+    <AvContainer size="default">
+      <div class="sp-section__header">
+        <h2 class="av-section-title">What makes Study Planner different</h2>
+        <p class="av-section-lead">
+          It keeps planning and execution in one calm loop, so consistency becomes easier every day.
+        </p>
       </div>
+      <AvTimeline items={timelineItems} />
     </AvContainer>
   </section>
 </AppShell>
+
+<style>
+  .sp-hero {
+    position: relative;
+    padding: 4rem 0 2.5rem;
+    background: radial-gradient(circle at top left, rgba(16, 185, 129, 0.16), transparent 55%),
+      radial-gradient(circle at 80% 0%, rgba(15, 118, 110, 0.2), transparent 50%);
+  }
+  .sp-hero__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    align-items: center;
+  }
+  .sp-hero__title {
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    font-weight: 700;
+    color: #f8fafc;
+    margin: 0.35rem 0 0.75rem;
+  }
+  .sp-hero__lead {
+    color: rgba(226, 232, 240, 0.85);
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+  .sp-hero__bullets {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+    color: rgba(148, 163, 184, 0.9);
+    font-size: 0.9rem;
+  }
+  .sp-hero__bullets span {
+    padding-left: 1.1rem;
+    position: relative;
+  }
+  .sp-hero__bullets span::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.6rem;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: rgba(16, 185, 129, 0.85);
+  }
+  .sp-hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+  }
+  .sp-hero__panel-card {
+    border-radius: 1.5rem;
+    border: 1px solid rgba(30, 41, 59, 0.7);
+    background: rgba(15, 23, 42, 0.75);
+    padding: 1.75rem;
+    box-shadow: 0 20px 60px rgba(2, 8, 23, 0.35);
+  }
+  .sp-hero__panel-kicker {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: rgba(148, 163, 184, 0.8);
+    margin-bottom: 0.4rem;
+  }
+  .sp-hero__panel-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #f8fafc;
+    margin: 0 0 1rem;
+  }
+  .sp-hero__panel-steps {
+    list-style: none;
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+  }
+  .sp-hero__panel-steps li {
+    display: grid;
+    grid-template-columns: 1.5rem 1fr;
+    gap: 0.6rem;
+    align-items: start;
+    color: rgba(226, 232, 240, 0.92);
+    font-size: 0.92rem;
+  }
+  .sp-hero__panel-steps li span {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    font-size: 0.78rem;
+    color: #0f172a;
+    background: rgba(16, 185, 129, 0.9);
+    font-weight: 700;
+  }
+  .sp-hero__panel-footer {
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(51, 65, 85, 0.8);
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .sp-hero__panel-label {
+    margin: 0;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(148, 163, 184, 0.85);
+  }
+  .sp-hero__panel-value {
+    margin: 0.2rem 0 0;
+    color: #f8fafc;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .sp-hero__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.85rem;
+    margin-top: 2rem;
+  }
+  .sp-stat {
+    border: 1px solid rgba(51, 65, 85, 0.8);
+    border-radius: 1rem;
+    background: rgba(2, 6, 23, 0.55);
+    padding: 1rem 1.1rem;
+  }
+  .sp-stat__value {
+    margin: 0;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+  .sp-stat__label {
+    margin: 0.25rem 0 0;
+    color: rgba(148, 163, 184, 0.92);
+    font-size: 0.82rem;
+  }
+  .sp-section__header {
+    margin-bottom: 1rem;
+  }
+</style>
