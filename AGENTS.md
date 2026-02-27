@@ -67,6 +67,7 @@ This file records what was built/changed so far for the study-planner repo. Read
 
 ## Task Log (Recent)
 - Keep newest first; include date and short summary.
+- 2026-02-27 Footer parent-origin rollout: bumped `@ansiversa/components` to `0.0.149` (lockfile refreshed) to consume shared footer absolute-parent links for Terms/Privacy/FAQ/Contact (`https://ansiversa.com/...` in prod, configurable locally via `PUBLIC_ANSIVERSA_PARENT_ORIGIN`). Verification: `npm run build` ✅.
 - 2026-02-22 Delete flow completion for main Plans list: added `deletePlan` action with ownership validation and safe child cleanup (`StudyLogs` + `StudyPlanTasks` before `StudyPlans`), wired icon-only delete + `AvConfirmDialog` on `/plans`, dialog title includes plan name, success/error toasts aligned (`Deleted.` / `Failed to delete. Please try again.`), and list refresh after delete. Verification: `npm run build` ✅.
 - 2026-02-22 Delete flow standardized (Plan tasks): replaced direct delete with icon-only action + `AvConfirmDialog` confirmation showing task name (`Delete '<name>'?`), added pending-delete state in store, confirmed delete now re-fetches plan detail for consistent UI refresh, and failure retry behavior (error message + dialog reopen). Verification: `npm run build` ✅.
 - 2026-02-22 FAQ content refresh (production): replaced placeholder/demo FAQ entries with real Study Planner user FAQs (5) via `db/seed-faq-content.ts` using audience=`user`, published entries, and stable sort order; aligned content with current Study Planner V1 behavior and ecosystem FAQ contract.
