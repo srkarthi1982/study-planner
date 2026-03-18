@@ -17,6 +17,7 @@ const title = "Study Logs – Ansiversa";
 const description = "Track study sessions and progress.";
 const isPaid = Boolean(Astro.locals.user?.isPaid);
 const maxLogs = FREE_LIMITS.maxLogs;
+const pricingHref = new URL("/pricing", Astro.locals.rootAppUrl ?? "https://ansiversa.com").toString();
 const userId = Astro.locals.user?.id ?? "";
 const plans = userId
   ? await db.select().from(StudyPlans).where(eq(StudyPlans.ownerId, userId))
@@ -103,7 +104,7 @@ const plans = userId
             >
               <p class="av-text-strong">Free logs limit reached.</p>
               <p class="av-text-soft">Upgrade to Pro to log more than {maxLogs} sessions.</p>
-              <AvButton href="/pricing" variant="ghost">View pricing</AvButton>
+              <AvButton href={pricingHref} variant="ghost">View pricing</AvButton>
             </div>
           </div>
         </AvCard>
