@@ -18,6 +18,7 @@ const title = "Study Plans – Ansiversa";
 const description = "Create and manage your study plans.";
 const isPaid = Boolean(Astro.locals.user?.isPaid);
 const maxPlans = FREE_LIMITS.maxPlans;
+const pricingHref = new URL("/pricing", Astro.locals.rootAppUrl ?? "https://ansiversa.com").toString();
 ---
 
 <AppShell title={title} description={description}>
@@ -86,30 +87,8 @@ const maxPlans = FREE_LIMITS.maxPlans;
             >
               <p class="av-text-strong">Free plans limit reached.</p>
               <p class="av-text-soft">Upgrade to Pro to create more than {maxPlans} plans.</p>
-              <AvButton href="/pricing" variant="ghost">View pricing</AvButton>
+              <AvButton href={pricingHref} variant="ghost">View pricing</AvButton>
             </div>
-          </div>
-        </AvCard>
-
-        <AvCard variant="soft" className="av-auth-stack-md">
-          <div class="av-auth-stack-sm">
-            <div class="av-row-between">
-              <div>
-                <h2 class="av-card-heading">Pro exports</h2>
-                <p class="av-text-soft">Export your plans and tasks as a PDF.</p>
-              </div>
-              <span class="av-badge av-badge-primary">Pro</span>
-            </div>
-            <div class="av-row-wrap">
-              <AvButton type="button" disabled={!isPaid}>Export plans</AvButton>
-              <AvButton type="button" variant="ghost" disabled={!isPaid}>Schedule export</AvButton>
-            </div>
-            {!isPaid ? (
-              <div class="av-card av-card-soft av-auth-stack-xs">
-                <p class="av-text-strong">Exports are available in Pro.</p>
-                <AvButton href="/pricing" variant="ghost">View pricing</AvButton>
-              </div>
-            ) : null}
           </div>
         </AvCard>
 

@@ -15,13 +15,14 @@ import { FREE_LIMITS } from "../../lib/freeLimits";
 
 const planId = Number.parseInt(Astro.params.id ?? "", 10);
 if (!Number.isFinite(planId)) {
-  throw new Error("Invalid plan id.");
+  return Astro.redirect("/plans");
 }
 
 const title = "Study Plan – Ansiversa";
 const description = "Track tasks inside your study plan.";
 const isPaid = Boolean(Astro.locals.user?.isPaid);
 const maxTasks = FREE_LIMITS.maxTasks;
+const pricingHref = new URL("/pricing", Astro.locals.rootAppUrl ?? "https://ansiversa.com").toString();
 ---
 
 <AppShell title={title} description={description}>
@@ -106,7 +107,7 @@ const maxTasks = FREE_LIMITS.maxTasks;
             >
               <p class="av-text-strong">Free tasks limit reached.</p>
               <p class="av-text-soft">Upgrade to Pro to create more than {maxTasks} tasks.</p>
-              <AvButton href="/pricing" variant="ghost">View pricing</AvButton>
+              <AvButton href={pricingHref} variant="ghost">View pricing</AvButton>
             </div>
           </div>
         </AvCard>

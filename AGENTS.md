@@ -66,6 +66,7 @@ This file records what was built/changed so far for the study-planner repo. Read
 - [x] Build/typecheck green
 
 ## Task Log (Recent)
+- 2026-03-18 Full verification sweep (pre-launch stabilization): audited all user/admin routes and core plan/task/log/bookmark flows, fixed invalid `planId` route handling (`/plans/[id]` now redirects to `/plans` instead of throwing), replaced mini-app-internal `/pricing` links with absolute parent pricing URL (`rootAppUrl`) to prevent dead-end 404 navigation, and removed unfinished non-functional “Pro exports” controls from `/plans` to avoid misleading launch UI. Verification: `npm run check` ✅.
 - 2026-03-01 Live-app shared UI sync: upgraded `@ansiversa/components` to `^0.0.163` (or confirmed already aligned in `web`) and refreshed install state for this repo. Verification: `npm run build` ✅.
 - Keep newest first; include date and short summary.
 - 2026-02-27 Landing page premium-standard alignment: rewamped `src/pages/index.astro` to match ecosystem landing composition used by Quiz/FlashNote/Resume/Portfolio (premium hero + right-side “Your flow” card, 3-card stats row, and pillar timeline section “What makes Study Planner different”). Preserved app behavior/routes and data contracts (`buildStudyPlannerDashboardSummary` reused for live stats: active plans/tasks tracked/sessions logged). No middleware/auth/db/actions changes. Verification: `npm run build` ✅.
